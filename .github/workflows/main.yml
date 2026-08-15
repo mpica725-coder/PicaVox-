@@ -43,6 +43,6 @@ jobs:
         if: steps.gradle_wrapper.outputs.exists == 'true'
 
       - name: Skip build when no Gradle wrapper is present
-        if: steps.gradle_wrapper.outputs.exists != 'true'
+        if: steps.gradle_wrapper.outputs.exists == 'false'
         run: echo "No ./gradlew found, skipping Android bundle build."
         
