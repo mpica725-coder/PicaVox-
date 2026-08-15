@@ -14,18 +14,35 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Check for Gradle wrapper
+        id: gradle_wrapper
+        run: |
+          if [ -f "./gradlew" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
+        if: steps.gradle_wrapper.outputs.exists == 'true'
         with:
           java-version: '17'
           distribution: 'temurin'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
+        if: steps.gradle_wrapper.outputs.exists == 'true'
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
+        if: steps.gradle_wrapper.outputs.exists == 'true'
 
       - name: Build Release AAB
         run: ./gradlew bundleRelease
+        if: steps.gradle_wrapper.outputs.exists == 'true'
+
+      - name: Skip build when no Gradle wrapper is present
+        if: steps.gradle_wrapper.outputs.exists != 'true'
+        run: echo "No ./gradlew found, skipping Android bundle build."
         
