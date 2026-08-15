@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -28,4 +31,33 @@ jobs:
 
       - name: Build Release AAB
         run: ./gradlew bundleRelease
+
+      - name: Upload release bundle artifact
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-aab
+          path: app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
+
+  deploy-internal:
+    name: Deploy to Google Play Internal Testing
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download release bundle artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-aab
+          path: app/build/outputs/bundle/release
+
+      - name: Upload to Google Play internal track
+        uses: r0adkll/upload-google-play@v1.1.3
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ secrets.GOOGLE_PLAY_PACKAGE_NAME }}
+          releaseFiles: app/build/outputs/bundle/release/*.aab
+          track: internal
         
