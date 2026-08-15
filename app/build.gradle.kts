@@ -7,6 +7,19 @@ android {
     namespace = "com.picavox.app"
     compileSdk = 34
 
+    val keystoreFilePath = System.getenv("KEYSTORE_PATH")
+    val keystorePassword = System.getenv("STORE_PASSWORD")
+    val keyAlias = System.getenv("KEY_ALIAS")
+    val keyPassword = System.getenv("KEY_PASSWORD")
+    val releaseKeystoreFile = keystoreFilePath
+        ?.takeIf { it.isNotBlank() }
+        ?.let { file(it) }
+        ?.takeIf { it.exists() }
+    val hasCustomReleaseSigning = releaseKeystoreFile != null &&
+        !keystorePassword.isNullOrBlank() &&
+        !keyAlias.isNullOrBlank() &&
+        !keyPassword.isNullOrBlank()
+
     defaultConfig {
         applicationId = "com.picavox.app"
         minSdk = 24
@@ -16,14 +29,9 @@ android {
     }
 
     signingConfigs {
-        create("release") {
-            val keystoreFile = System.getenv("KEYSTORE_PATH")
-            val keystorePassword = System.getenv("STORE_PASSWORD")
-            val keyAlias = System.getenv("KEY_ALIAS")
-            val keyPassword = System.getenv("KEY_PASSWORD")
-
-            if (keystoreFile != null && keystorePassword != null && keyAlias != null && keyPassword != null) {
-                storeFile = file(keystoreFile)
+        if (hasCustomReleaseSigning) {
+            create("release") {
+                storeFile = releaseKeystoreFile
                 storePassword = keystorePassword
                 this.keyAlias = keyAlias
                 this.keyPassword = keyPassword
@@ -34,7 +42,11 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = if (hasCustomReleaseSigning) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 
