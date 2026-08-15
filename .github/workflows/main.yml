@@ -57,7 +57,7 @@ jobs:
         uses: r0adkll/upload-google-play@v1.1.3
         with:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-          packageName: ${{ secrets.GOOGLE_PLAY_PACKAGE_NAME }}
+          packageName: com.picavox.app
           releaseFiles: app/build/outputs/bundle/release/*.aab
           track: internal
         
