@@ -12,3 +12,11 @@ Workflow behavior:
 
 - Pull requests to `main`: builds `bundleRelease`.
 - Pushes to `main`: builds `bundleRelease` and uploads the generated `.aab` to Google Play Internal Testing.
+
+## Download
+
+Once the app is signed and built, the release bundle is available as a GitHub Actions artifact:
+
+👉 [Download latest signed release (release-aab)](https://github.com/mpica725-coder/PicaVox-/actions/workflows/main.yml?query=branch%3Amain+event%3Apush)
+
+Click the most recent successful run on `main`, then download the **release-aab** artifact.
