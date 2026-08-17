@@ -1,9 +1,8 @@
-name: Build Android App Bundle
+name: Build Signed Android App Bundle
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ "main" ]
-  pull_request:
     branches: [ "main" ]
 
 permissions:
@@ -31,8 +30,18 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
+      - name: Validate signing secrets
+        env:
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          test -n "$KEYSTORE_BASE64"
+          test -n "$STORE_PASSWORD"
+          test -n "$KEY_ALIAS"
+          test -n "$KEY_PASSWORD"
+
       - name: Decode keystore
-        if: env.KEYSTORE_BASE64 != ''
         run: |
           echo "$KEYSTORE_BASE64" | base64 --decode > $GITHUB_WORKSPACE/release.keystore
           echo "KEYSTORE_PATH=$GITHUB_WORKSPACE/release.keystore" >> $GITHUB_ENV
@@ -45,31 +54,8 @@ jobs:
         run: ./gradlew bundleRelease
 
       - name: Upload release bundle artifact
-        if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
-          name: release-aab
+          name: signed-release-aab
           path: app/build/outputs/bundle/release/*.aab
           if-no-files-found: error
-
-  deploy-internal:
-    name: Deploy to Google Play Internal Testing
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download release bundle artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: release-aab
-          path: app/build/outputs/bundle/release
-
-      - name: Upload to Google Play internal track
-        uses: r0adkll/upload-google-play@v1.1.3
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-          packageName: com.picavox.app
-          releaseFiles: app/build/outputs/bundle/release/*.aab
-          track: internal
-        

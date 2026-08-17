@@ -1,3 +1,5 @@
+import org.gradle.api.GradleException
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -42,11 +44,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            signingConfig = if (hasCustomReleaseSigning) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
-            }
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
@@ -57,5 +55,15 @@ android {
 
     kotlinOptions {
         jvmTarget = "17"
+    }
+}
+
+tasks.matching { it.name in setOf("bundleRelease", "assembleRelease") }.configureEach {
+    doFirst {
+        if (!hasCustomReleaseSigning) {
+            throw GradleException(
+                "Release builds require KEYSTORE_PATH, STORE_PASSWORD, KEY_ALIAS, and KEY_PASSWORD."
+            )
+        }
     }
 }
