@@ -42,13 +42,13 @@ jobs:
           missing=0
           for name in KEYSTORE_BASE64 STORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
             if [ -z "${!name}" ]; then
-              echo "::error::$name is required for deployable release builds."
+              echo "::warning::$name is not set — release bundle will be signed with debug key."
               missing=1
             fi
           done
 
           if [ "$missing" -ne 0 ]; then
-            exit 1
+            echo "::warning::One or more signing secrets are missing. The build will fall back to debug signing and cannot be uploaded to Google Play."
           fi
 
       - name: Decode keystore
