@@ -21,14 +21,6 @@ android {
         !keystorePassword.isNullOrBlank() &&
         !keyAlias.isNullOrBlank() &&
         !keyPassword.isNullOrBlank()
-    val requestedTasks = gradle.startParameter.taskNames
-    val isReleaseTaskRequested = requestedTasks.any { it.contains("release", ignoreCase = true) }
-
-    if (isReleaseTaskRequested && !hasCustomReleaseSigning) {
-        throw GradleException(
-            "Release builds require KEYSTORE_PATH, STORE_PASSWORD, KEY_ALIAS, and KEY_PASSWORD."
-        )
-    }
 
     defaultConfig {
         applicationId = "com.picavox.app"
@@ -63,5 +55,15 @@ android {
 
     kotlinOptions {
         jvmTarget = "17"
+    }
+}
+
+tasks.matching { it.name.contains("Release", ignoreCase = true) }.configureEach {
+    doFirst {
+        if (!hasCustomReleaseSigning) {
+            throw GradleException(
+                "Release builds require KEYSTORE_PATH, STORE_PASSWORD, KEY_ALIAS, and KEY_PASSWORD."
+            )
+        }
     }
 }
