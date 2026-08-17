@@ -58,7 +58,7 @@ android {
     }
 }
 
-tasks.matching { it.name.contains("Release", ignoreCase = true) }.configureEach {
+tasks.matching { it.name in setOf("bundleRelease", "assembleRelease") }.configureEach {
     doFirst {
         if (!hasCustomReleaseSigning) {
             throw GradleException(
