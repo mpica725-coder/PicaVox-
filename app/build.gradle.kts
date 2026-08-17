@@ -1,3 +1,5 @@
+import org.gradle.api.GradleException
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -19,6 +21,14 @@ android {
         !keystorePassword.isNullOrBlank() &&
         !keyAlias.isNullOrBlank() &&
         !keyPassword.isNullOrBlank()
+    val requestedTasks = gradle.startParameter.taskNames
+    val isReleaseTaskRequested = requestedTasks.any { it.contains("release", ignoreCase = true) }
+
+    if (isReleaseTaskRequested && !hasCustomReleaseSigning) {
+        throw GradleException(
+            "Release builds require KEYSTORE_PATH, STORE_PASSWORD, KEY_ALIAS, and KEY_PASSWORD."
+        )
+    }
 
     defaultConfig {
         applicationId = "com.picavox.app"
@@ -42,11 +52,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            signingConfig = if (hasCustomReleaseSigning) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
-            }
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
