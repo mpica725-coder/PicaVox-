@@ -9,8 +9,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 jobs:
   build:
@@ -111,6 +109,10 @@ jobs:
     if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -137,9 +139,16 @@ jobs:
 
           bundle_name="PicaVox-${RUN_NUMBER}.aab"
           cp "$bundle_file" "site/$bundle_name"
+          BUNDLE_NAME="$bundle_name" python - <<'PY'
+          import html
+          import os
+          from pathlib import Path
 
-          cat > site/index.html <<HTML
-          <!doctype html>
+          bundle_name = html.escape(os.environ["BUNDLE_NAME"], quote=True)
+          run_number = html.escape(os.environ["RUN_NUMBER"], quote=True)
+          commit_sha = html.escape(os.environ["COMMIT_SHA"], quote=True)
+
+          page = f"""<!doctype html>
           <html lang="en">
           <head>
             <meta charset="utf-8">
@@ -150,13 +159,15 @@ jobs:
             <main>
               <h1>PicaVox Release Bundle</h1>
               <p>Download the latest Android App Bundle (.aab) and upload it to Google Play Console.</p>
-              <p><a href="./${bundle_name}" download>Download ${bundle_name}</a></p>
-              <p>Run: #${RUN_NUMBER}</p>
-              <p>Commit: ${COMMIT_SHA}</p>
+              <p><a href="./{bundle_name}" download>Download {bundle_name}</a></p>
+              <p>Run: #{run_number}</p>
+              <p>Commit: {commit_sha}</p>
             </main>
           </body>
           </html>
-          HTML
+          """
+          Path("site/index.html").write_text(page, encoding="utf-8")
+          PY
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
