@@ -18,3 +18,4 @@ Workflow behavior:
 - Pull requests to `main`: builds `bundleRelease`.
 - Pushes to `main`: validates release secrets, builds `bundleRelease`, uploads the generated `.aab`, and deploys it to Google Play Internal Testing.
 - Manual runs (`workflow_dispatch`): validates release secrets, builds `bundleRelease`, uploads the generated `.aab`, and deploys it to Google Play Internal Testing.
+- Pushes to `main` and manual runs also publish a GitHub Pages download page containing the latest `.aab` bundle for manual Google Play Console uploads.

@@ -9,6 +9,8 @@ on:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
 
 jobs:
   build:
@@ -103,4 +105,68 @@ jobs:
           packageName: com.picavox.app
           releaseFiles: app/build/outputs/bundle/release/*.aab
           track: internal
+
+  publish-download-page:
+    name: Publish Bundle Download Page
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Download release bundle artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-aab
+          path: bundle
+
+      - name: Build download page
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p site
+          bundle_file="$(find bundle -type f -name '*.aab' | head -n 1)"
+          if [ -z "$bundle_file" ]; then
+            echo "::error::No .aab file found in downloaded artifact."
+            exit 1
+          fi
+
+          bundle_name="PicaVox-${RUN_NUMBER}.aab"
+          cp "$bundle_file" "site/$bundle_name"
+
+          cat > site/index.html <<HTML
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>PicaVox Release Bundle</title>
+          </head>
+          <body>
+            <main>
+              <h1>PicaVox Release Bundle</h1>
+              <p>Download the latest Android App Bundle (.aab) and upload it to Google Play Console.</p>
+              <p><a href="./${bundle_name}" download>Download ${bundle_name}</a></p>
+              <p>Run: #${RUN_NUMBER}</p>
+              <p>Commit: ${COMMIT_SHA}</p>
+            </main>
+          </body>
+          </html>
+          HTML
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
         
