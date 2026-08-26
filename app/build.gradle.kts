@@ -61,6 +61,15 @@ android {
 
 tasks.matching { it.name in setOf("bundleRelease", "assembleRelease") }.configureEach {
     doFirst {
+        val keystoreFile = System.getenv("KEYSTORE_PATH")
+            ?.takeIf { it.isNotBlank() }
+            ?.let { project.file(it) }
+            ?.takeIf { it.exists() }
+        val hasCustomReleaseSigning = keystoreFile != null &&
+            !System.getenv("STORE_PASSWORD").isNullOrBlank() &&
+            !System.getenv("KEY_ALIAS").isNullOrBlank() &&
+            !System.getenv("KEY_PASSWORD").isNullOrBlank()
+
         if (!hasCustomReleaseSigning) {
             throw GradleException(
                 "Release builds require KEYSTORE_PATH, STORE_PASSWORD, KEY_ALIAS, and KEY_PASSWORD."
