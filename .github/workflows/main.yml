@@ -36,10 +36,10 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          test -n "$KEYSTORE_BASE64"
-          test -n "$STORE_PASSWORD"
-          test -n "$KEY_ALIAS"
-          test -n "$KEY_PASSWORD"
+          [ -n "$KEYSTORE_BASE64" ] || { echo "ERROR: KEYSTORE_BASE64 secret is not set"; exit 1; }
+          [ -n "$STORE_PASSWORD" ]  || { echo "ERROR: STORE_PASSWORD secret is not set";  exit 1; }
+          [ -n "$KEY_ALIAS" ]       || { echo "ERROR: KEY_ALIAS secret is not set";        exit 1; }
+          [ -n "$KEY_PASSWORD" ]    || { echo "ERROR: KEY_PASSWORD secret is not set";     exit 1; }
 
       - name: Decode keystore
         run: |

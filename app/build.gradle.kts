@@ -5,22 +5,22 @@ plugins {
     alias(libs.plugins.kotlin.android)
 }
 
+val keystoreFilePath = System.getenv("KEYSTORE_PATH")
+val keystorePassword = System.getenv("STORE_PASSWORD")
+val keyAlias = System.getenv("KEY_ALIAS")
+val keyPassword = System.getenv("KEY_PASSWORD")
+val releaseKeystoreFile = keystoreFilePath
+    ?.takeIf { it.isNotBlank() }
+    ?.let { file(it) }
+    ?.takeIf { it.exists() }
+val hasCustomReleaseSigning = releaseKeystoreFile != null &&
+    !keystorePassword.isNullOrBlank() &&
+    !keyAlias.isNullOrBlank() &&
+    !keyPassword.isNullOrBlank()
+
 android {
     namespace = "com.picavox.app"
     compileSdk = 34
-
-    val keystoreFilePath = System.getenv("KEYSTORE_PATH")
-    val keystorePassword = System.getenv("STORE_PASSWORD")
-    val keyAlias = System.getenv("KEY_ALIAS")
-    val keyPassword = System.getenv("KEY_PASSWORD")
-    val releaseKeystoreFile = keystoreFilePath
-        ?.takeIf { it.isNotBlank() }
-        ?.let { file(it) }
-        ?.takeIf { it.exists() }
-    val hasCustomReleaseSigning = releaseKeystoreFile != null &&
-        !keystorePassword.isNullOrBlank() &&
-        !keyAlias.isNullOrBlank() &&
-        !keyPassword.isNullOrBlank()
 
     defaultConfig {
         applicationId = "com.picavox.app"
@@ -44,7 +44,8 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.findByName("release")
+                ?: signingConfigs.getByName("debug")
         }
     }
 
