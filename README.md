@@ -1,20 +1,22 @@
 # PicaVox
-Android app that gets automatically pushed to internal testing
+Android app with a GitHub Actions workflow that builds a signed release bundle for manual Google Play upload.
 
-## GitHub Actions setup for Google Play Internal Testing
+## GitHub Actions setup for signed release bundles
 
-Configure these repository secrets before pushing to `main` or running `workflow_dispatch`:
+Configure these repository secrets before running the workflow:
 
-- `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`: Full JSON key for a Google Play service account with release access.
-- `KEYSTORE_BASE64`: Base64-encoded Android release keystore file contents.
-- `STORE_PASSWORD`: Android release keystore password.
-- `KEY_ALIAS`: Android release key alias.
-- `KEY_PASSWORD`: Android release key password.
-
-The workflow deploys the app with package name `com.picavox.app`.
+- `KEYSTORE_BASE64`: Base64-encoded contents of your release keystore file.
+- `STORE_PASSWORD`: Keystore password.
+- `KEY_ALIAS`: Release key alias.
+- `KEY_PASSWORD`: Release key password.
 
 Workflow behavior:
 
-- Pull requests to `main`: builds `bundleRelease`.
-- Pushes to `main`: validates release secrets, builds `bundleRelease`, uploads the generated `.aab`, and deploys it to Google Play Internal Testing.
-- Manual runs (`workflow_dispatch`): validates release secrets, builds `bundleRelease`, uploads the generated `.aab`, and deploys it to Google Play Internal Testing.
+- Manual run (`workflow_dispatch`) or push to `main`: validates signing secrets, builds `bundleRelease`, and uploads the generated signed `.aab` as the `signed-release-aab` artifact.
+
+## Download the signed bundle
+
+1. Open the workflow run in GitHub Actions.
+2. Download the `signed-release-aab` artifact.
+3. Extract the artifact and use the `.aab` from `app/build/outputs/bundle/release/`.
+4. Upload the bundle manually in Google Play Console for package `com.picavox.app`.
