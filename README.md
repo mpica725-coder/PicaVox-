@@ -13,6 +13,7 @@ Configure these repository secrets before running the workflow:
 Workflow behavior:
 
 - Manual run (`workflow_dispatch`) or push to `main`: validates signing secrets, builds `bundleRelease`, and uploads the generated signed `.aab` as the `signed-release-aab` artifact.
+ - Pushes to `main` and manual runs on `main` also publish a GitHub Pages download page containing the latest `.aab` bundle for manual Google Play Console uploads.
 
 ## Download the signed bundle
 
