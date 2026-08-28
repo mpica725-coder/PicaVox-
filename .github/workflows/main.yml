@@ -33,12 +33,12 @@ jobs:
       - name: Validate signing secrets
         env:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS || secrets.KEYSTORE_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           [ -n "$KEYSTORE_BASE64" ] || { echo "ERROR: KEYSTORE_BASE64 secret is not set"; exit 1; }
           [ -n "$STORE_PASSWORD" ]  || { echo "ERROR: STORE_PASSWORD secret is not set";  exit 1; }
-          [ -n "$KEY_ALIAS" ]       || { echo "ERROR: KEY_ALIAS secret is not set";        exit 1; }
+          [ -n "$KEY_ALIAS" ]       || { echo "ERROR: KEY_ALIAS (or KEYSTORE_ALIAS) secret is not set"; exit 1; }
           [ -n "$KEY_PASSWORD" ]    || { echo "ERROR: KEY_PASSWORD secret is not set";     exit 1; }
 
       - name: Decode keystore
@@ -49,7 +49,7 @@ jobs:
       - name: Build Release AAB
         env:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS || secrets.KEYSTORE_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew bundleRelease
 
@@ -93,7 +93,7 @@ jobs:
             exit 1
           fi
 
-          bundle_name="PicaVox-${RUN_NUMBER}.aab"
+          bundle_name="com.picavox.app-${RUN_NUMBER}.aab"
           cp "$bundle_file" "site/$bundle_name"
           BUNDLE_NAME="$bundle_name" python - <<'PY'
           import html
@@ -114,7 +114,7 @@ jobs:
           <body>
             <main>
               <h1>PicaVox Release Bundle</h1>
-              <p>Download the latest Android App Bundle (.aab) and upload it to Google Play Console.</p>
+              <p>Download the latest Android App Bundle (.aab) and upload it to Google Play Console package <code>com.picavox.app</code>.</p>
               <p><a href="./{bundle_name}" download>Download {bundle_name}</a></p>
               <p>Run: #{run_number}</p>
               <p>Commit: {commit_sha}</p>

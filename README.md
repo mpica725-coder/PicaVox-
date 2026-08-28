@@ -7,7 +7,7 @@ Configure these repository secrets before running the workflow:
 
 - `KEYSTORE_BASE64`: Base64-encoded contents of your release keystore file.
 - `STORE_PASSWORD`: Keystore password.
-- `KEY_ALIAS`: Release key alias.
+- `KEY_ALIAS`: Release key alias (`KEYSTORE_ALIAS` is also accepted).
 - `KEY_PASSWORD`: Release key password.
 
 Workflow behavior:
